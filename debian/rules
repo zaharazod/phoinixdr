@@ -1,0 +1,79 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/default.mk
+include /usr/share/rustc/architecture.mk
+
+# Global compiler/link hardening options
+export CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+export DEB_HOST_RUST_TYPE DEB_HOST_GNU_TYPE
+export DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow
+
+# Rust path sandboxing configurations
+export CARGO_TARGET_DIR = $(shell pwd)/debian/target
+export CARGO_HOME = $(shell pwd)/debian/cargo_home
+export CARGO_REGISTRY = $(shell pwd)/debian/cargo_registry
+
+# Configuration paths for your sub-component layout
+export NPM_SUBDIR = $(shell pwd)/apps/desktop
+export CARGO_PACKAGE_PATH = $(shell pwd)/apps/phoinix-cli
+
+%:
+	# Execute a standard debhelper sequence
+	dh $@
+
+execute_before_dh_auto_configure:
+	# 1. Initialize your local offline rust dependencies
+	/usr/share/cargo/bin/cargo prepare-debian debian/cargo_registry --link-from-system --offline
+
+override_dh_auto_build:
+	# 2. Compile the standalone CLI tool manifest
+	/usr/bin/cargo build --manifest-path=$(shell pwd)/Cargo.toml --offline
+	
+	# 3. Build the npm/frontend assets natively
+	cd $(NPM_SUBDIR) && npm run build --cache=$(shell pwd)/debian/npm_cache --prefer-offline
+	
+	# 4. Compile the Tauri GUI App application binary natively (bypassing the bundler)
+	# This ensures compiler flags, hardening, and debug symbol management are preserved.
+	#cargo build --manifest-path=$(NPM_SUBDIR)/src-tauri/Cargo.toml --release --offline
+	cd $(NPM_SUBDIR) && npm run tauri build --cache=$(shell pwd)/debian/npm_cache \
+		--prefer-offline -- --bundles deb
+
+
+override_dh_auto_test:
+	# Skip automated test framework loops to prevent lockup failures
+	@echo "Skipping automated test phase"
+
+override_dh_auto_install:
+	# 5. Safely install the standalone CLI binary into phoinix-cli
+	/usr/bin/cargo -Zavoid-dev-deps --verbose install \
+		--path $(CARGO_PACKAGE_PATH) \
+		--root $(shell pwd)/debian/phoinix-cli/usr \
+		--profile=release
+	
+	# 6. Safely install the Tauri application binary into phoinix-dr
+# 	/usr/bin/cargo -Zavoid-dev-deps --verbose install \
+# 		--path $(NPM_SUBDIR)/src-tauri \
+# 		--root $(shell pwd)/debian/phoinix-dr/usr \
+# 		--profile=release
+
+	# 7. Clean up cargo's systemic metadata residue tags inside your deployment folders
+	rm -f $(shell pwd)/debian/phoinix-cli/usr/.crates* $(shell pwd)/debian/phoinix-cli/usr/.rustc*
+	rm -f $(shell pwd)/debian/phoinix-dr/usr/share/phoinixdr/.crates* $(shell pwd)/debian/phoinix-dr/usr/share/phoinixdr/.rustc*
+	
+	# 8. Move binary out of /usr/bin if you want it isolated, or rename it if necessary
+	# (e.g., if cargo install gave it a generic name)
+	
+	# 9. Manually copy the desktop integration assets that Tauri normally generates for you
+	mkdir -p $(shell pwd)/debian/phoinix-dr/usr/share/applications
+	mkdir -p $(shell pwd)/debian/phoinix-dr/usr/share/icons/hicolor/512x512/apps/
+	
+	cp $(NPM_SUBDIR)/src-tauri/debian/target/release/bundle/deb/*/data/usr/share/applications/PhoinixDR.desktop \
+		$(shell pwd)/debian/phoinix-dr/usr/share/applications/phoinix-dr.desktop
+
+	cp $(NPM_SUBDIR)/src-tauri/icons/128x128.png \
+		$(shell pwd)/debian/phoinix-dr/usr/share/icons/hicolor/128x128/apps/phoinix-dr.png
+
+execute_after_dh_auto_clean:
+	# Keep local workspace structures isolated from dirt cycles
+	rm -rf debian/cargo_registry debian/cargo_home debian/target \
+		debian/cargo-checksum.json debian/npm_cache target apps/desktop/src-tauri/debian

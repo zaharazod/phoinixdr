@@ -1,0 +1,1 @@
+extend-diff-ignore = "(^|/)(debian/cargo_home|debian/cargo_registry|debian/npm_cache|debian/target|target|node_modules|.vscode)(/|$)"

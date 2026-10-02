@@ -1,0 +1,20 @@
+From: Matt Barry <matt@hazelmollusk.com>
+Date: Sun, 4 Oct 2026 11:09:57 -0400
+Subject: add default-members
+
+---
+ Cargo.toml | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Cargo.toml b/Cargo.toml
+index c6045db..a308593 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -19,6 +19,7 @@ members = [
+     "crates/phoinix-partition-recovery",
+     "tests/integration",
+ ]
++default-members = ["apps/phoinix-cli"]
+ # The desktop shell is a separate workspace so that the core never needs a
+ # GUI toolchain to build or test.
+ exclude = ["apps/desktop/src-tauri"]
