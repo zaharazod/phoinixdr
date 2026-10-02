@@ -1,0 +1,42 @@
+Source: phoinixdr
+Section: admin
+Maintainer: Matt Barry <matt@hazelmollusk.com>
+Build-Depends:
+ debhelper-compat (= 13), 
+ dh-cargo,
+ cargo,
+ librust-clap-dev,
+ librust-bitflags-2+default-dev,
+ librust-bitflags-2+serde-dev,
+ librust-crc32fast-1+default-dev,
+ librust-flate2-1+default-dev,
+ librust-hex-0.4+default-dev,
+ librust-md-5-0.10+default-dev,
+ librust-serde-1+default-dev,
+ librust-serde-1+derive-dev,
+ librust-serde-json-1+default-dev,
+ librust-sha1-0.10+default-dev,
+ librust-sha2-0.10+default-dev,
+ librust-thiserror-2+default-dev,
+ librust-tracing-0.1+default-dev,
+ librust-uuid-1+default-dev,
+ librust-uuid-1+serde-dev,
+ librust-uuid-1+v4-dev,
+ librust-uuid-1+v5-dev,
+ libstd-rust-dev,
+ rustc:native (>= 1.85)
+Standards-Version: 4.7.4
+Homepage: https://github.com/pcoronaf/PhoinixDR
+Vcs-Browser: https://github.com/zaharazod/phoinixdr
+Vcs-Git: https://github.com/zaharazod/phoinixdr.git
+
+Package: phoinix-cli
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+Description: data-recovery engine
+ PhoinixDR (PHOINIX Data Recovery) is a data-recovery engine, command-line 
+ tool and desktop application that reconstructs lost data from filesystems, 
+ raw media, disk images and damaged storage structures while explaining how 
+ likely each recovered object is to be intact.
