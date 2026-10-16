@@ -6,12 +6,10 @@ Subject: add default-members
  Cargo.toml | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/Cargo.toml b/Cargo.toml
-index c6045db..a308593 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -19,6 +19,7 @@ members = [
-     "crates/phoinix-partition-recovery",
+@@ -20,6 +20,7 @@ members = [
+     "crates/phoinix-erase",
      "tests/integration",
  ]
 +default-members = ["apps/phoinix-cli"]

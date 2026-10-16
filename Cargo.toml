@@ -20,6 +20,7 @@ members = [
     "crates/phoinix-erase",
     "tests/integration",
 ]
+default-members = ["apps/phoinix-cli"]
 # The desktop shell is a separate workspace so that the core never needs a
 # GUI toolchain to build or test.
 exclude = ["apps/desktop/src-tauri"]
